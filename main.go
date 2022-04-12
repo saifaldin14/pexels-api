@@ -244,4 +244,12 @@ func main() {
 	var TOKEN = os.Getenv("API_KEY")
 
 	var c = NewClient(TOKEN)
+
+	result, err := c.GetRandomVideo()
+
+	if err != nil {
+		fmt.Errorf("Search ertror:%v", err)
+	}
+
+	fmt.Println(result)
 }
