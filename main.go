@@ -123,6 +123,59 @@ func (c *Client) SearchPhotos(query string, perPage, page int) (*SearchResult, e
 	return &result, err
 }
 
+func (c *Client) CuratedPhotos(perPage, page int) (*CuratedResult, error) {
+	url := fmt.Sprintf(PhotoApi+"/curated?per_page=%d&page=%d", perPage, page)
+	resp, err := c.requestDoWithAuth("GET", url)
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result CuratedResult
+	err = json.Unmarshal(data, &result)
+	return &result, err
+}
+
+func (c *Client) SearchVideo(query string, perPage, page int) (*VideoSearchResult, error) {
+	url := fmt.Sprintf(VideoApi+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
+	resp, err := c.requestDoWithAuth("GET", url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result VideoSearchResult
+	err = json.Unmarshal(data, &result)
+	return &result, err
+}
+
+func (c *Client) PopularVideo(perPage, page int) (*PopularVideos, error) {
+	url := fmt.Sprintf(VideoApi+"/popular?per_page=%d&page=%d", perPage, page)
+	resp, err := c.requestDoWithAuth("GET", url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result PopularVideos
+	err = json.Unmarshal(data, &result)
+	return &result, err
+
+}
+
 func main() {
 	err := godotenv.Load("local.env")
 	if err != nil {
