@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -102,6 +105,22 @@ type VideoPictures struct {
 	Id      int32  `json:"id"`
 	Picture string `json:"picture"`
 	Nr      int32  `json:"nr"`
+}
+
+func (c *Client) SearchPhotos(query string, perPage, page int) (*SearchResult, error) {
+	url := fmt.Sprintf(PhotoApi+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
+	resp, err := c.requestDoWithAuth("GET", url)
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result SearchResult
+	err = json.Unmarshal(data, &result)
+	return &result, err
 }
 
 func main() {
