@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -159,6 +161,30 @@ func (c *Client) requestDoWithAuth(method, url string) (*http.Response, error) {
 	return resp, nil
 }
 
+func (c *Client) GetPhoto(id int) (*Photo, error) {
+	url := fmt.Sprintf(PhotoApi+"/photos/%d", id)
+	resp, err := c.requestDoWithAuth("GET", url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	var result Photo
+	err = json.Unmarshal(data, &result)
+	return &result, err
+}
+
+func (c *Client) GetRandomPhoto() (*Photo, error) {
+	rand.Seed(time.Now().Unix())
+	randNum := rand.Intn(1001)
+	result, err := c.CuratedPhotos(1, randNum)
+	if err == nil && len(result.Photos) == 1 {
+		return &result.Photos[0], nil
+	}
+	return nil, err
+}
+
 func (c *Client) SearchVideo(query string, perPage, page int) (*VideoSearchResult, error) {
 	url := fmt.Sprintf(VideoApi+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
 	resp, err := c.requestDoWithAuth("GET", url)
@@ -194,6 +220,20 @@ func (c *Client) PopularVideo(perPage, page int) (*PopularVideos, error) {
 	err = json.Unmarshal(data, &result)
 	return &result, err
 
+}
+
+func (c *Client) GetRandomVideo() (*Video, error) {
+	rand.Seed(time.Now().Unix())
+	randNum := rand.Intn(1001)
+	result, err := c.PopularVideo(1, randNum)
+	if err == nil && len(result.Videos) == 1 {
+		return &result.Videos[0], nil
+	}
+	return nil, err
+}
+
+func (c *Client) GetRemainingRequestsInThisMonth() int32 {
+	return c.RemainingTimes
 }
 
 func main() {
