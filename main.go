@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -137,6 +138,25 @@ func (c *Client) CuratedPhotos(perPage, page int) (*CuratedResult, error) {
 	var result CuratedResult
 	err = json.Unmarshal(data, &result)
 	return &result, err
+}
+
+func (c *Client) requestDoWithAuth(method, url string) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", c.Token)
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return resp, err
+	}
+	times, err := strconv.Atoi(resp.Header.Get("X-Ratelimit-Remaining"))
+	if err != nil {
+		return resp, nil
+	} else {
+		c.RemainingTimes = int32(times)
+	}
+	return resp, nil
 }
 
 func (c *Client) SearchVideo(query string, perPage, page int) (*VideoSearchResult, error) {
